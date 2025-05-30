@@ -79,7 +79,6 @@ export default function SearchMovie() {
   return (
     <div ref={containerRef}>
       <form className="form" onSubmit={(e) => e.preventDefault()}>
-        <label className="label" htmlFor="query">Movie Name</label>
         <div className="input-wrapper">
             <input
                 ref={inputRef}

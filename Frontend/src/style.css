@@ -1,20 +1,21 @@
 html{
-    font-size: 10px ;
+  font-size: 10px ;
 }
 
 *{
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body{
-    margin: 0;
-    padding: 0;
-    background-color: rgb(244, 244, 244);
-    color: #333;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4; /* same as gradient bottom */
+  color: #333;
+  font-family: 'Montserrat', sans-serif;
 }
 
 p{
-    font-size: 1.6rem;
+  font-size: 1.6rem;
 }
 
 .container{
@@ -76,6 +77,16 @@ p{
     border-radius: 16px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .card:hover {
@@ -180,7 +191,7 @@ p{
   .clear-btn {
     position: absolute;
     right: 12px;
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
     background: none;
     border: none;
@@ -191,7 +202,12 @@ p{
     border: solid black 3px;
     border-radius: 5px;
     background-color: whitesmoke;
-  }
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
   
   .clear-btn:hover {
     background-color: #e0e0e0;
@@ -205,6 +221,58 @@ p{
     font-size: 1.6rem;
     color: #777;
   }
+
+  .hero {
+    width: 100vw;
+    height: 300px; /* Fixed height */
+    margin: 0;
+    padding: 0;
+    background: url('https://image.tmdb.org/t/p/original//t/p/original/xDMIl84Qo5Tsu62c9DGWhmPI67A.jpg') center/cover no-repeat;
+    position: relative;
+  }
+  
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%; /* Cover the hero */
+    width: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), #f4f4f4);
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 2;
+    backdrop-filter: blur(2px);
+}
+
+.hero-text {
+    font-size: 3.6rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    font-family: 'DM Serif Display', serif;
+}
+
+.hero-subtext {
+    font-size: 2rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.hero .container {
+  max-width: 100%;
+  padding: 0;
+}
+
+.search-container {
+  position: relative;
+  z-index: 10;
+  margin-top: -100px; /* Pulls it upward */
+  padding-bottom: 2rem;
+}
+
     
 @media (min-width: 786px){
     .form{
@@ -227,5 +295,9 @@ p{
         height: 430px;
         margin-bottom: 0px;
     }
+    .clear-btn{
+        top: 50%;
+    }
 }
+
 
