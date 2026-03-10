@@ -1,0 +1,76 @@
+apiVersion: '2021-02-01'
+type: Microsoft.Web/sites
+name: movie-recommender-app
+location: eastus
+properties:
+  serverFarmId: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/serverfarms/{appServicePlan}
+  siteConfig:
+    appSettings:
+      - name: WEBSITES_ENABLE_APP_SERVICE_STORAGE
+        value: 'false'
+      - name: DOCKER_REGISTRY_SERVER_URL
+        value: 'https://{registryName}.azurecr.io'
+      - name: DOCKER_REGISTRY_SERVER_USERNAME
+        value: '{registryUsername}'
+      - name: DOCKER_REGISTRY_SERVER_PASSWORD
+        value: '{registryPassword}'
+      - name: WEBSITES_PORT
+        value: '5001'
+      - name: FLASK_ENV
+        value: 'production'
+    linuxFxVersion: 'DOCKER|{registryName}.azurecr.io/movie-recommender:latest'
+  httpsOnly: true
+---
+apiVersion: '2021-02-01'
+type: Microsoft.Web/serverfarms
+name: movie-recommender-plan
+location: eastus
+sku:
+  name: B2
+  capacity: 1
+kind: linux
+properties:
+  reserved: true
+---
+apiVersion: '2021-02-01'
+type: Microsoft.Insights/autoscalesettings
+name: movie-recommender-autoscale
+location: eastus
+properties:
+  profiles:
+    - name: Auto scale based on CPU
+      capacity:
+        minimum: '1'
+        maximum: '5'
+        default: '1'
+      rules:
+        - metricTrigger:
+            metricName: CpuPercentage
+            metricResourceId: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/serverfarms/{appServicePlan}
+            timeGrain: PT1M
+            statistic: Average
+            timeWindow: PT5M
+            timeAggregation: Average
+            operator: GreaterThan
+            threshold: 70
+          scaleAction:
+            direction: Increase
+            type: ChangeCount
+            value: '1'
+            cooldown: PT10M
+        - metricTrigger:
+            metricName: CpuPercentage
+            metricResourceId: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/serverfarms/{appServicePlan}
+            timeGrain: PT1M
+            statistic: Average
+            timeWindow: PT5M
+            timeAggregation: Average
+            operator: LessThan
+            threshold: 30
+          scaleAction:
+            direction: Decrease
+            type: ChangeCount
+            value: '1'
+            cooldown: PT10M
+  enabled: true
+  targetResourceUri: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/serverfarms/{appServicePlan}

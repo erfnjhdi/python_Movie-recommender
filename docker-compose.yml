@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    volumes:
+      - ./Backend:/app
+    command: python app.py
+    networks:
+      - movie-network
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    command: npm start
+    depends_on:
+      - backend
+    networks:
+      - movie-network
+
+networks:
+  movie-network:
+    driver: bridge
