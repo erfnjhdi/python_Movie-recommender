@@ -1,51 +1,78 @@
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from recommender import load_data, compute_similarity, get_recommendations, normalize_title
+from recommender import load_data, compute_similarity, get_recommendations, get_movie_by_fuzzy_match
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
-# Load data and precompute similarity once
 df = load_data()
 similarity = compute_similarity(df)
 
 @app.route("/recommend", methods=["POST"])
 def recommend():
-    data = request.get_json()
-    title = data.get("title", "")
-    filters = data.get("filters", {})
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid request body"}), 400
 
-    recs = get_recommendations(title=title, df=df, similarity_matrix=similarity, filters=filters)
+        title = data.get("title", "").strip()
+        if not title:
+            return jsonify({"error": "Title parameter is required"}), 400
 
-    # Fallback: if no recommendations found, use top-rated movies in the same genre
-    if not recs:
-        print(f"No recommendations found for '{title}'. Using fallback...")
+        if len(title) > 200:
+            return jsonify({"error": "Title parameter exceeds maximum length"}), 400
 
-        # Get a partial match using first 2 words from the input title
-        partial_title = " ".join(normalize_title(title).split()[:2])
-        movie_row = df[df['title'].apply(normalize_title).str.contains(partial_title)]
+        filters = data.get("filters", {})
+        sort_by = data.get("sort_by", "similarity")
 
-        movie_row = df[df['title'].str.lower().str.contains(partial_title)]
-        if not movie_row.empty:
-            movie_genres = movie_row.iloc[0]['genres']
-            print("Fallback using genre from:", movie_row.iloc[0]['title'])
-            if movie_genres:
-                main_genre = movie_genres.split()[0]
-                fallback_recs = (
-                    df[df['genres'].str.contains(main_genre, case=False)]
-                    .sort_values(by=['vote_average', 'vote_count'], ascending=False)
-                    .head(10)['title']
-                    .tolist()
-                )
-                recs = fallback_recs
+        recs = get_recommendations(title=title, df=df, similarity_matrix=similarity, filters=filters, sort_by=sort_by)
 
-    return jsonify({"recommendations": recs})
+        if not recs:
+            idx = get_movie_by_fuzzy_match(title, df, threshold=60)
+            if idx is not None:
+                movie_genres = df.iloc[idx]['genres']
+                if movie_genres:
+                    main_genre = movie_genres.split()[0]
+                    fallback_recs = (
+                        df[df['genres'].str.contains(main_genre, case=False)]
+                        .sort_values(by=['vote_average', 'vote_count'], ascending=False)
+                        .head(10)['title']
+                        .tolist()
+                    )
+                    if fallback_recs:
+                        logger.info(f"Fallback recommendation used for: {title}")
+                        recs = fallback_recs
+
+        return jsonify({"recommendations": recs})
+
+    except Exception as e:
+        logger.error(f"Error processing recommendation request: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/search", methods=["GET"])
 def search():
-    query = request.args.get("q", "").lower()
-    matches = df[df['title'].str.lower().str.contains(query)]['title'].tolist()
-    return jsonify({"results": matches[:10]})  # return top 10 matches
+    try:
+        query = request.args.get("q", "").strip().lower()
+        if not query:
+            return jsonify({"results": []}), 200
+
+        if len(query) > 200:
+            return jsonify({"error": "Query exceeds maximum length"}), 400
+
+        matches = df[df['title'].str.lower().str.contains(query, na=False)]['title'].tolist()
+        return jsonify({"results": matches[:10]})
+
+    except Exception as e:
+        logger.error(f"Error processing search request: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)
