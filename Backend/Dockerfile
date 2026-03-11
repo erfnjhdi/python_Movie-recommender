@@ -12,6 +12,7 @@ COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 
 COPY . .
+RUN python precompute.py
 
 EXPOSE 5001
 

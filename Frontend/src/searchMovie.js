@@ -9,6 +9,7 @@ export default function SearchMovie() {
   //const [selectedMovie, setSelectedMovie] = useState(null);
   const [movies, setMovies] = useState([]);
   const [noResults, setNoResults] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch movie suggestions as the user types
   useEffect(() => {
@@ -28,7 +29,10 @@ export default function SearchMovie() {
     setQuery(movie.title);
     setFocused(false);
     setSuggestions([]);
-    
+    setMovies([]);
+    setNoResults(false);
+    setLoading(true);
+
     try {
       const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/recommend`, {
         method: "POST",
@@ -51,9 +55,11 @@ export default function SearchMovie() {
       //setSelectedMovie(null); // Clear previous selection
       const filtered = recommendedMovies.filter(m => m && m.poster_path);
       setMovies(filtered);
-      setNoResults(filtered.length === 0); // 👈 Add this
+      setNoResults(filtered.length === 0);
     } catch (error) {
       console.error("Failed to fetch recommendations:", error);
+    } finally {
+      setLoading(false);
     }
   };
   const [focused, setFocused] = useState(false);
@@ -141,6 +147,12 @@ export default function SearchMovie() {
           </motion.ul>
         )}
       </AnimatePresence>
+      {loading && (
+        <div className="loading-bar-container">
+          <div className="loading-bar" />
+        </div>
+      )}
+
       <AnimatePresence>
         {movies.length > 0 && (
             <motion.div

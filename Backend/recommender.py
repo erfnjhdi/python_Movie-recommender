@@ -1,9 +1,13 @@
 import pandas as pd
 import ast
+import os
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from rapidfuzz import fuzz
+from rapidfuzz import fuzz, process
 import re
+
+CACHE_PATH = "data/similarity_cache.npy"
 
 
 def normalize_title(title):
@@ -12,17 +16,15 @@ def normalize_title(title):
 
 def get_movie_by_fuzzy_match(query, df, threshold=80):
     normalized_query = normalize_title(query)
-    best_match = None
-    best_score = threshold
-
-    for idx, row in df.iterrows():
-        normalized_title = normalize_title(row["title"])
-        score = fuzz.token_sort_ratio(normalized_query, normalized_title)
-        if score > best_score:
-            best_score = score
-            best_match = idx
-
-    return best_match
+    result = process.extractOne(
+        normalized_query,
+        df["_normalized_title"].tolist(),
+        scorer=fuzz.token_sort_ratio,
+        score_cutoff=threshold,
+    )
+    if result:
+        return result[2]
+    return None
 
 
 def load_data(path="data/movies.csv", credits_path="data/credits.csv"):
@@ -78,6 +80,8 @@ def load_data(path="data/movies.csv", credits_path="data/credits.csv"):
         + df.get("director", "")
     )
     df["tags"] = df["tags"].str.lower()
+    df = df.reset_index(drop=True)
+    df["_normalized_title"] = df["title"].apply(normalize_title)
     return df
 
 
@@ -102,9 +106,13 @@ def extract_director(crew_str):
 
 
 def compute_similarity(df):
+    if os.path.exists(CACHE_PATH):
+        return np.load(CACHE_PATH)
     tfidf = TfidfVectorizer(stop_words="english", max_features=5000)
     tfidf_matrix = tfidf.fit_transform(df["tags"])
-    return cosine_similarity(tfidf_matrix)
+    similarity = cosine_similarity(tfidf_matrix)
+    np.save(CACHE_PATH, similarity)
+    return similarity
 
 
 def get_recommendations(
