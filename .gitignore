@@ -6,7 +6,6 @@ env/
 venv/
 .venv/
 .idea/
-*.csv
 /Frontend/.env
 /Backend/.env
 /Backend/__pycache__/
