@@ -30,7 +30,7 @@ export default function SearchMovie() {
     setSuggestions([]);
     
     try {
-      const res = await fetch("http://localhost:5001/recommend", {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: movie.title, filters: {} })

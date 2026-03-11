@@ -14,7 +14,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "http://localhost:3000",
+                "https://python-movie-recommender.vercel.app",
+            ]
+        }
+    },
+)
 
 df = load_data()
 similarity = compute_similarity(df)
