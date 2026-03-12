@@ -1,10 +1,12 @@
-This project is a full-stack Movie Recommendation Platform that allows users to search for movies and receive personalized suggestions based on content similarity. The platform integrates a Python-based backend using Flask for handling API requests and machine learning logic, and a ReactJS frontend for a dynamic, responsive user interface.
-The core recommendation engine is powered by content-based filtering, utilizing TF-IDF vectorization and cosine similarity to analyze and compare movie metadata such as genres, keywords, and descriptions. The system is optimized to handle over 5,000+ movie records and supports real-time search suggestions, intelligent fallback handling, and a polished UI/UX for an intuitive user experience.
+This project is a full-stack Movie Recommendation Platform that lets users search for a movie and receive personalized suggestions based on content similarity. The platform combines a Python backend for machine learning logic with a React frontend for a smooth, modern user experience. 
+
+The recommendation engine uses content-based filtering: movie metadata (genres, keywords, cast, director, and overview) is processed through TF-IDF vectorization, and cosine similarity is used to find the closest matches across a dataset of 5,000+ films. The similarity matrix is precomputed and cached at build time for fast startup.
 
 Technologies & Stack
-* Frontend: ReactJS, HTML, CSS, Axios
-* Backend: Python, Flask, pandas, scikit-learn, NumPy
-* Machine Learning: TF-IDF, Cosine Similarity, Content-Based Filtering
+* Frontend: React 19, Framer Motion, CSS Variables, TMDb API
+* Backend: Python, Flask, Gunicorn, pandas, scikit-learn, NumPy, RapidFuzz
+* Machine Learning: TF-IDF Vectorization, Cosine Similarity, Content-Based Filtering
+* Infrastructure: Azure App Service (containerized via Docker), Azure Container Registry, Vercel
+* CI/CD: GitHub Actions, ACR Webhook
 * Version Control: Git, GitHub
 
-My goal is to keep updating and adding new features to this project. I'm considering adding a userbase, and watch lists in the future which would then allow me to add collaborative filtering to the recommendations as well to ensure higher accuracy and improve the application's usabillity.
